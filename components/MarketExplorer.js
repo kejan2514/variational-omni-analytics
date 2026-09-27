@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 
 const money = (value, compact = false) => {
   const n = Number(value || 0);
@@ -43,7 +44,7 @@ export default function MarketExplorer({ markets }) {
           <tbody>
             {rows.map((m) => (
               <tr key={m.ticker}>
-                <td><b>{m.ticker}</b><small>{m.name}</small></td>
+                <td><Link className="marketLink" href={`/market/${encodeURIComponent(m.ticker)}`}><b>{m.ticker}</b><small>{m.name}</small></Link></td>
                 <td>{money(m.mark_price)}</td><td>{money(m.volume_24h, true)}</td>
                 <td>{money(m.open_interest?.long_open_interest, true)}</td>
                 <td>{money(m.open_interest?.short_open_interest, true)}</td>
