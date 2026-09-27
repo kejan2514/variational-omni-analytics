@@ -1,3 +1,5 @@
+import MarketExplorer from "../components/MarketExplorer";
+
 export const revalidate = 30;
 
 const API = "https://omni-client-api.prod.ap-northeast-1.variational.io/metadata/stats";
@@ -37,9 +39,17 @@ export default async function Home() {
     );
   }
 
-  const listings = [...(stats.listings || [])]
-    .sort((a, b) => Number(b.volume_24h || 0) - Number(a.volume_24h || 0))
-    .slice(0, 100);
+  const listings = [...(stats.listings || [])];
+  const byVolume = [...listings].sort((a, b) => Number(b.volume_24h || 0) - Number(a.volume_24h || 0));
+  const byFunding = [...listings].sort((a, b) => Math.abs(Number(b.funding_rate || 0)) - Math.abs(Number(a.funding_rate || 0)));
+  const byOi = [...listings].sort((a, b) => {
+    const aOi = Number(a.open_interest?.long_open_interest || 0) + Number(a.open_interest?.short_open_interest || 0);
+    const bOi = Number(b.open_interest?.long_open_interest || 0) + Number(b.open_interest?.short_open_interest || 0);
+    return bOi - aOi;
+  });
+  const topVolume = byVolume[0];
+  const topFunding = byFunding[0];
+  const topOi = byOi[0];
 
   return (
     <main className="shell">
@@ -59,30 +69,19 @@ export default async function Home() {
         <article><span>MARKETS</span><strong>{number(stats.num_markets)}</strong></article>
       </section>
 
+      <section className="leaders">
+        <article><span>VOLUME LEADER</span><strong>{topVolume?.ticker || "—"}</strong><small>{topVolume ? money(topVolume.volume_24h, true) : "—"}</small></article>
+        <article><span>OI LEADER</span><strong>{topOi?.ticker || "—"}</strong><small>{topOi ? money(Number(topOi.open_interest?.long_open_interest || 0) + Number(topOi.open_interest?.short_open_interest || 0), true) : "—"}</small></article>
+        <article><span>FUNDING WATCH</span><strong>{topFunding?.ticker || "—"}</strong><small>{topFunding ? (Number(topFunding.funding_rate || 0) * 100).toFixed(4) + "%" : "—"}</small></article>
+      </section>
+
       <section className="panel">
         <div className="panelHead">
           <div><p className="eyebrow">MARKETS</p><h2>Top markets by 24h volume</h2></div>
-          <span>{listings.length} markets · ranked by volume</span>
+          <span>{listings.length} markets available</span>
         </div>
-        <div className="marketTools"><span>Market explorer</span><span>Top 100 · live public data</span></div>
-        <div className="tableWrap">
-          <table>
-            <thead><tr><th>Market</th><th>Mark price</th><th>24h volume</th><th>Long OI</th><th>Short OI</th><th>Funding</th><th>Spread</th></tr></thead>
-            <tbody>
-              {listings.map((market) => (
-                <tr key={market.ticker}>
-                  <td><b>{market.ticker}</b><small>{market.name}</small></td>
-                  <td>{money(market.mark_price)}</td>
-                  <td>{money(market.volume_24h, true)}</td>
-                  <td>{money(market.open_interest?.long_open_interest, true)}</td>
-                  <td>{money(market.open_interest?.short_open_interest, true)}</td>
-                  <td>{(Number(market.funding_rate || 0) * 100).toFixed(4)}%</td>
-                  <td>{Number(market.base_spread_bps || 0).toFixed(2)} bps</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <div className="marketTools"><span>Market explorer</span><span>Search · sort · live public data</span></div>
+        <MarketExplorer markets={listings} />
       </section>
 
       <footer>Public read-only data · No wallet connection · No automated trading · Refreshes every 30 seconds</footer>
