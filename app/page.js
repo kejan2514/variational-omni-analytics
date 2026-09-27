@@ -39,7 +39,7 @@ export default async function Home() {
 
   const listings = [...(stats.listings || [])]
     .sort((a, b) => Number(b.volume_24h || 0) - Number(a.volume_24h || 0))
-    .slice(0, 30);
+    .slice(0, 100);
 
   return (
     <main className="shell">
@@ -62,8 +62,9 @@ export default async function Home() {
       <section className="panel">
         <div className="panelHead">
           <div><p className="eyebrow">MARKETS</p><h2>Top markets by 24h volume</h2></div>
-          <span>{listings.length} shown</span>
+          <span>{listings.length} markets · ranked by volume</span>
         </div>
+        <div className="marketTools"><span>Market explorer</span><span>Top 100 · live public data</span></div>
         <div className="tableWrap">
           <table>
             <thead><tr><th>Market</th><th>Mark price</th><th>24h volume</th><th>Long OI</th><th>Short OI</th><th>Funding</th><th>Spread</th></tr></thead>
@@ -84,7 +85,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <footer>Public read-only data · No wallet connection · No automated trading</footer>
+      <footer>Public read-only data · No wallet connection · No automated trading · Refreshes every 30 seconds</footer>
     </main>
   );
 }
